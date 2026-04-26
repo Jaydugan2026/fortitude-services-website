@@ -3,20 +3,24 @@ import Stripe from 'stripe';
 
 export const maxDuration = 30;
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
-
-const PRICE_MAP: Record<string, Record<string, string | undefined>> = {
-  essential: {
-    monthly: process.env.STRIPE_ESSENTIAL_MONTHLY_PRICE_ID,
-    annual: process.env.STRIPE_ESSENTIAL_ANNUAL_PRICE_ID,
-  },
-  premium: {
-    monthly: process.env.STRIPE_PREMIUM_MONTHLY_PRICE_ID,
-    annual: process.env.STRIPE_PREMIUM_ANNUAL_PRICE_ID,
-  },
-};
-
 export async function POST(request: NextRequest) {
+  if (!process.env.STRIPE_SECRET_KEY) {
+    return NextResponse.json({ error: 'Stripe not configured' }, { status: 503 });
+  }
+
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+
+  const PRICE_MAP: Record<string, Record<string, string | undefined>> = {
+    essential: {
+      monthly: process.env.STRIPE_ESSENTIAL_MONTHLY_PRICE_ID,
+      annual: process.env.STRIPE_ESSENTIAL_ANNUAL_PRICE_ID,
+    },
+    premium: {
+      monthly: process.env.STRIPE_PREMIUM_MONTHLY_PRICE_ID,
+      annual: process.env.STRIPE_PREMIUM_ANNUAL_PRICE_ID,
+    },
+  };
+
   try {
     const { planId, billing } = (await request.json()) as {
       planId: 'essential' | 'premium';
